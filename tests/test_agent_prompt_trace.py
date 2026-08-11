@@ -33,10 +33,9 @@ class RecordingLangfuseClient:
 
 
 def test_agent_links_prompt_version_to_trace_and_generation(monkeypatch) -> None:
-    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "test-public-key")
-    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "test-secret-key")
     monkeypatch.setenv("LANGFUSE_PROMPT_NAME", "day13-chat")
     monkeypatch.setenv("LANGFUSE_PROMPT_LABEL", "production")
+    monkeypatch.setattr(agent_module, "tracing_enabled", lambda: True)
     client = RecordingLangfuseClient()
     monkeypatch.setattr(agent_module, "get_langfuse_client", lambda: client)
 
