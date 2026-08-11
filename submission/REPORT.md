@@ -13,7 +13,7 @@
 - Điểm `validate_logs.py`: `100/100`.
 - Tổng số traces:
 - Số PII leak còn lại: `0`.
-- Link/đường dẫn dashboard: `docs/dashboard-spec.md` và `config/dashboard.yaml` (phương án dashboard bằng spec theo CP2).
+- Link/đường dẫn dashboard: `dashboard.py` (Streamlit tại `http://localhost:8501`), `docs/dashboard-spec.md` và `config/dashboard.yaml`.
 
 ## 3. Logging và tracing
 
@@ -34,6 +34,7 @@
 
 - Kết quả `validate_dashboard.py`: `HỢP LỆ: 6/6 panel có trong dashboard contract.`
 - Evidence dashboard:
+  - `submission/evidence/role-c-dashboard-runtime.png`
   - `submission/evidence/role-c-dashboard-spec.md`
   - `submission/evidence/role-c-validate-dashboard.txt`
   - `submission/evidence/role-c-metrics-snapshot.json`
@@ -55,10 +56,12 @@
   - `traffic`: tổng request đã hoàn tất, gồm thành công và thất bại.
   - `error_rate_pct = failed_requests / traffic × 100`; trả `0.0` khi chưa có request và làm tròn hai chữ số thập phân.
 - Dashboard contract gồm đúng sáu nhóm chỉ số: latency P50/P95/P99, traffic, error rate/breakdown, cost, input/output tokens và quality proxy.
+- Dashboard runtime dùng Streamlit, đọc trực tiếp `data/logs.jsonl`, mặc định hiển thị 60 phút và tự refresh mỗi 30 giây; sidebar hỗ trợ 15/30/60/180 phút.
+- Mỗi panel hiển thị đơn vị và trạng thái so với threshold/SLO; latency, traffic, cost, tokens và quality có đường threshold trực quan.
 - Dashboard validator kiểm tra chặt nguồn `data/logs.jsonl`, events, fields, aggregations, unit, threshold, time range 60 phút và refresh 15–30 giây.
-- Kết quả kiểm thử riêng Role C: `11 passed` cho `tests/test_metrics.py` và `tests/test_dashboard_validator.py`.
+- Kết quả kiểm thử tập trung Role C: `17 passed` cho data aggregation, Streamlit smoke test, metrics và dashboard validator.
 - Kết quả thực hành: 20 request, error rate 0%, quality trung bình 0.88; P95 bình thường 1124 ms và P95 khi `rag_slow` 2651 ms.
-- Phương án evidence của Role C là dashboard spec, không yêu cầu ảnh dashboard runtime theo lựa chọn được CP2 cho phép.
+- Evidence runtime `submission/evidence/role-c-dashboard-runtime.png` hiển thị đủ sáu panel từ dữ liệu log thật.
 
 ## 6. Điều tra challenge
 
@@ -76,4 +79,4 @@ Với mỗi thành viên, ghi rõ nhiệm vụ và link commit/PR tương ứng.
 
 | Thành viên | Phần việc | Commit/PR | Điều đã học |
 |---|---|---|---|
-| Nguyễn Đức Chung (2A202601705) | Role C — bổ sung request counters và `error_rate_pct`; tăng cường semantic validation cho dashboard contract 6 panel; viết test metrics/dashboard; đồng bộ `origin/main` vào nhánh cá nhân | `5ceb708` — request error-rate metrics; `3f08503` — dashboard semantic validation; nhánh `2A202601705_NguyenDucChung` | Cách tính error rate không chia cho 0; ý nghĩa P50/P95/P99; cách ánh xạ log event/field sang dashboard; vai trò của threshold/SLO trong phát hiện bất thường |
+| Nguyễn Đức Chung (2A202601705) | Role C — bổ sung request counters và `error_rate_pct`; semantic validator cho contract 6 panel; bộ tổng hợp JSONL; dashboard Streamlit và test/evidence runtime | `5ceb708` — request error-rate metrics; `3f08503` — dashboard semantic validation; `46cff29` — JSONL loader; `b9e19aa` — six-panel aggregation; `a57d068` — Streamlit dashboard; nhánh `2A202601705_NguyenDucChung` | Cách tính error rate không chia cho 0; ý nghĩa P50/P95/P99; cách ánh xạ log event/field sang dashboard; vai trò của threshold/SLO trong phát hiện bất thường |
