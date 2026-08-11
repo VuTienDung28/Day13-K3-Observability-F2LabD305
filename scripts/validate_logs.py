@@ -7,11 +7,17 @@ LOG_PATH = Path("data/logs.jsonl")
 REQUIRED_FIELDS = {"ts", "level", "service", "event", "correlation_id"}
 ENRICHMENT_FIELDS = {"user_id_hash", "session_id", "feature", "model"}
 PII_DETECTORS = {
-    "email": re.compile(r"[\w.-]+@[\w.-]+\.\w+"),
-    "phone_vn": re.compile(r"(?<!\d)(?:\+84|0)(?:[ .-]?\d){9}(?!\d)"),
-    "cccd": re.compile(r"\b\d{12}\b"),
     "credit_card": re.compile(r"\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b"),
+    "cccd": re.compile(r"\b\d{12}\b"),
+    "passport": re.compile(r"\b[A-Z]\d{7,8}\b", re.IGNORECASE),
+    "email": re.compile(r"[\w.-]+@[\w.-]+\.\w+", re.IGNORECASE),
+    "phone_vn": re.compile(r"(?<!\d)(?:\+84|0)(?:[ .-]?\d){9}(?!\d)"),
+    "address_vn": re.compile(
+        r"\b(?:số nhà|đường|phường|quận|huyện|tỉnh|thành phố)\b",
+        re.IGNORECASE,
+    ),
 }
+
 
 def main() -> None:
     if not LOG_PATH.exists():
