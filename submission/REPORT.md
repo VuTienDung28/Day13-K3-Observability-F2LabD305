@@ -2,10 +2,11 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: F2
 - Repository URL: https://github.com/VuTienDung28/Day13-K3-Observability-F2LabD305
-- Commit SHA cuối:
+- Commit SHA cuối: chưa cập nhật / đang chờ xác nhận trên nhánh cá nhân
 - Thành viên và vai trò:
+  - Đào Thị Trang — 2A202601809 — Role D: SRE & Alerts.
   - Nguyễn Đức Chung — 2A202601705 — Role C: Metrics & Dashboard.
 
 ## 2. Kết quả kỹ thuật
@@ -60,6 +61,16 @@
 - Kết quả thực hành: 20 request, error rate 0%, quality trung bình 0.88; P95 bình thường 1124 ms và P95 khi `rag_slow` 2651 ms.
 - Phương án evidence của Role C là dashboard spec, không yêu cầu ảnh dashboard runtime theo lựa chọn được CP2 cho phép.
 
+### Phần triển khai Role D — SRE & Alerts
+
+- Người thực hiện: Đào Thị Trang — 2A202601809.
+- Mục tiêu chính: thiết lập alert rules dựa trên triệu chứng người dùng và SLO, đồng thời viết runbook rõ ràng cho xử lý sự cố.
+- Công việc đã hoàn thành:
+  - Hoàn thiện `config/alert_rules.yaml` với ba alert thực tế: latency SLO breach, error budget burn và quality/cost regression.
+  - Thiết lập mức độ ưu tiên (critical/warning), điều kiện alert và owner rõ ràng.
+  - Viết `docs/alerts.md` với runbook gồm: SLI/SLO liên quan, điều kiện duy trì, tác động người dùng, 3 bước kiểm tra đầu tiên và mitigation tạm thời.
+  - Duy trì nguyên tắc: alert không dựa vào tên implementation nội bộ, mà dựa trên triệu chứng hoặc SLO.
+
 ## 6. Điều tra challenge
 
 - Challenge ID: `day13-k3-observability-v1`.
@@ -76,4 +87,5 @@ Với mỗi thành viên, ghi rõ nhiệm vụ và link commit/PR tương ứng.
 
 | Thành viên | Phần việc | Commit/PR | Điều đã học |
 |---|---|---|---|
+| Đào Thị Trang (2A202601809) | Role D — hoàn thiện alert rules và runbook theo SLO; định nghĩa severity, owner và điều kiện alert; kiểm tra tính hợp lý của alert dựa trên triệu chứng người dùng | Nhánh `2A202601809_DaoThiTrang` | Alert phải dựa trên SLI/SLO; điều kiện duy trì cần có thời gian cụ thể; runbook phải cho phép incident triage nhanh bằng 3 bước kiểm tra đầu tiên |
 | Nguyễn Đức Chung (2A202601705) | Role C — bổ sung request counters và `error_rate_pct`; tăng cường semantic validation cho dashboard contract 6 panel; viết test metrics/dashboard; đồng bộ `origin/main` vào nhánh cá nhân | `5ceb708` — request error-rate metrics; `3f08503` — dashboard semantic validation; nhánh `2A202601705_NguyenDucChung` | Cách tính error rate không chia cho 0; ý nghĩa P50/P95/P99; cách ánh xạ log event/field sang dashboard; vai trò của threshold/SLO trong phát hiện bất thường |
