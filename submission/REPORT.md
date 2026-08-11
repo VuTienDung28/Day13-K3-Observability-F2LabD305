@@ -4,22 +4,23 @@
 
 - Tên nhóm: F2
 - Repository URL: https://github.com/VuTienDung28/Day13-K3-Observability-F2LabD305
-- Commit SHA cuối: chưa cập nhật / đang chờ xác nhận trên nhánh cá nhân
+- Commit SHA cuối: `3651ba6`
 - Thành viên và vai trò:
   - Đào Thị Trang — 2A202601809 — Role D: SRE & Alerts.
   - Nguyễn Đức Chung — 2A202601705 — Role C: Metrics & Dashboard.
 
 ## 2. Kết quả kỹ thuật
 
-- Điểm `validate_logs.py`: `100/100`.
-- Tổng số traces:
-- Số PII leak còn lại: `0`.
+- Điểm `validate_logs.py`: **100/100** — 12 log records, 0 record thiếu trường bắt buộc, 0 record thiếu enrichment và 4 correlation ID duy nhất.
+- Tổng số traces: 
+- Số PII leak còn lại: **0**.
 - Link/đường dẫn dashboard: `docs/dashboard-spec.md` và `config/dashboard.yaml` (phương án dashboard bằng spec theo CP2).
 
 ## 3. Logging và tracing
 
-- Evidence correlation ID:
-- Evidence PII redaction:
+- Evidence correlation ID: [CP1 correlation ID](evidence/cp1-correlation-id.png).
+- Evidence PII redaction: [CP1 PII redaction](evidence/cp1-pii-redaction.png) và [kết quả validate logs](evidence/cp1-validate-logs.png). Email, điện thoại Việt Nam, CCCD, thẻ thanh toán, passport và từ khóa địa chỉ Việt Nam được thay bằng marker `[REDACTED_*]` trước khi ghi JSONL. Kết quả cuối: `Potential PII leaks detected: 0`, `[PASSED] PII scrubbing`, score 100/100.
+- Evidence automated tests: [CP1 automated tests](evidence/cp1-automated-tests.png). Test bao phủ regex, container lồng nhau, processor order, JSONL output, validator độc lập và Langfuse correlation metadata.
 - Evidence trace waterfall:
 - Giải thích một span đáng chú ý:
 
@@ -87,5 +88,5 @@ Với mỗi thành viên, ghi rõ nhiệm vụ và link commit/PR tương ứng.
 
 | Thành viên | Phần việc | Commit/PR | Điều đã học |
 |---|---|---|---|
-| Đào Thị Trang (2A202601809) | Role D — hoàn thiện alert rules và runbook theo SLO; định nghĩa severity, owner và điều kiện alert; kiểm tra tính hợp lý của alert dựa trên triệu chứng người dùng | Nhánh `2A202601809_DaoThiTrang` | Alert phải dựa trên SLI/SLO; điều kiện duy trì cần có thời gian cụ thể; runbook phải cho phép incident triage nhanh bằng 3 bước kiểm tra đầu tiên |
+| Đào Thị Trang (2A202601809) | Role D — hoàn thiện alert rules và runbook theo SLO; định nghĩa severity, owner và điều kiện alert; kiểm tra tính hợp lý của alert dựa trên triệu chứng người dùng | `3651ba6` — Add alert rules and SRE runbook; nhánh `2A202601809_DaoThiTrang` | Alert phải dựa trên SLI/SLO; điều kiện duy trì cần có thời gian cụ thể; runbook phải cho phép incident triage nhanh bằng 3 bước kiểm tra đầu tiên |
 | Nguyễn Đức Chung (2A202601705) | Role C — bổ sung request counters và `error_rate_pct`; tăng cường semantic validation cho dashboard contract 6 panel; viết test metrics/dashboard; đồng bộ `origin/main` vào nhánh cá nhân | `5ceb708` — request error-rate metrics; `3f08503` — dashboard semantic validation; nhánh `2A202601705_NguyenDucChung` | Cách tính error rate không chia cho 0; ý nghĩa P50/P95/P99; cách ánh xạ log event/field sang dashboard; vai trò của threshold/SLO trong phát hiện bất thường |
