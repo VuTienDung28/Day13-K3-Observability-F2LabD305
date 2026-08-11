@@ -26,6 +26,45 @@ REQUIRED_PANEL_FIELDS = (
     "unit",
     "threshold",
 )
+REQUIRED_PANEL_SOURCE = "data/logs.jsonl"
+PANEL_CONTRACTS = {
+    "latency": {
+        "events": ["response_sent"],
+        "fields": ["latency_ms"],
+        "aggregations": ["p50", "p95", "p99"],
+        "unit": "ms",
+    },
+    "traffic": {
+        "events": ["request_received"],
+        "fields": ["event"],
+        "aggregations": ["count", "rate_per_minute"],
+        "unit": "requests_per_minute",
+    },
+    "errors": {
+        "events": ["request_received", "request_failed"],
+        "fields": ["error_type"],
+        "aggregations": ["error_rate_pct", "count_by_value"],
+        "unit": "percent",
+    },
+    "cost": {
+        "events": ["response_sent"],
+        "fields": ["cost_usd"],
+        "aggregations": ["sum_by_minute", "total"],
+        "unit": "usd",
+    },
+    "tokens": {
+        "events": ["response_sent"],
+        "fields": ["tokens_in", "tokens_out"],
+        "aggregations": ["sum_by_field"],
+        "unit": "tokens",
+    },
+    "quality": {
+        "events": ["response_sent"],
+        "fields": ["quality_score"],
+        "aggregations": ["mean"],
+        "unit": "score_0_to_1",
+    },
+}
 
 
 class DashboardConfigError(ValueError):
@@ -71,10 +110,20 @@ def load_dashboard_config(path: Path) -> dict:
         for field in REQUIRED_PANEL_FIELDS:
             if panel.get(field) in (None, "", []):
                 raise DashboardConfigError(f"Thiếu hoặc rỗng: {panel_id}.{field}")
+        if panel["source"] != REQUIRED_PANEL_SOURCE:
+            raise DashboardConfigError(
+                f"'{panel_id}.source' phải bằng '{REQUIRED_PANEL_SOURCE}'"
+            )
         if not all(isinstance(panel[field], list) for field in ("events", "fields", "aggregations")):
             raise DashboardConfigError(
                 f"'{panel_id}.events/fields/aggregations' phải là danh sách"
             )
+        expected = PANEL_CONTRACTS[panel_id]
+        for field in ("events", "fields", "aggregations", "unit"):
+            if panel[field] != expected[field]:
+                raise DashboardConfigError(
+                    f"'{panel_id}.{field}' không khớp dashboard contract"
+                )
 
         threshold = panel["threshold"]
         if not isinstance(threshold, dict):
