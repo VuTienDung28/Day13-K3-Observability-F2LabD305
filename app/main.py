@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -20,6 +21,41 @@ log = get_logger()
 app = FastAPI(title="Day 13 Observability Lab")
 app.add_middleware(CorrelationIdMiddleware)
 agent = LabAgent()
+
+
+@app.exception_handler(Exception)
+async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
+    error_type = type(exc).__name__
+    record_error(error_type)
+    request_context = getattr(
+        request.state,
+        "log_context",
+        {
+            "correlation_id": request.state.correlation_id,
+            "user_id_hash": None,
+            "session_id": None,
+            "feature": None,
+            "model": None,
+            "env": os.getenv("APP_ENV", "dev"),
+        },
+    )
+    log.error(
+        "request_failed",
+        service="api",
+        error_type=error_type,
+        **request_context,
+    )
+    correlation_id = request.state.correlation_id
+    return JSONResponse(
+        status_code=500,
+        content={"detail": error_type, "correlation_id": correlation_id},
+        headers={
+            "x-request-id": correlation_id,
+            "x-response-time-ms": (
+                f"{(time.perf_counter() - request.state.request_started_at) * 1000:.2f}"
+            ),
+        },
+    )
 
 
 @app.on_event("startup")
@@ -44,50 +80,46 @@ async def metrics() -> dict:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: Request, body: ChatRequest) -> ChatResponse:
-    # TODO: Enrich logs with request context (user_id_hash, session_id, feature, model, env)
-    # bind_contextvars(...)
-    
+    request.state.log_context = {
+        "correlation_id": request.state.correlation_id,
+        "user_id_hash": hash_user_id(body.user_id),
+        "session_id": body.session_id,
+        "feature": body.feature,
+        "model": agent.model,
+        "env": os.getenv("APP_ENV", "dev"),
+    }
+    bind_contextvars(**request.state.log_context)
+
     log.info(
         "request_received",
         service="api",
         payload={"message_preview": summarize_text(body.message)},
     )
-    try:
-        result = agent.run(
-            user_id=body.user_id,
-            feature=body.feature,
-            session_id=body.session_id,
-            message=body.message,
-        )
-        log.info(
-            "response_sent",
-            service="api",
-            latency_ms=result.latency_ms,
-            tokens_in=result.tokens_in,
-            tokens_out=result.tokens_out,
-            cost_usd=result.cost_usd,
-            quality_score=result.quality_score,
-            payload={"answer_preview": summarize_text(result.answer)},
-        )
-        return ChatResponse(
-            answer=result.answer,
-            correlation_id=request.state.correlation_id,
-            latency_ms=result.latency_ms,
-            tokens_in=result.tokens_in,
-            tokens_out=result.tokens_out,
-            cost_usd=result.cost_usd,
-            quality_score=result.quality_score,
-        )
-    except Exception as exc:  # pragma: no cover
-        error_type = type(exc).__name__
-        record_error(error_type)
-        log.error(
-            "request_failed",
-            service="api",
-            error_type=error_type,
-            payload={"detail": str(exc), "message_preview": summarize_text(body.message)},
-        )
-        raise HTTPException(status_code=500, detail=error_type) from exc
+    result = agent.run(
+        user_id=body.user_id,
+        feature=body.feature,
+        session_id=body.session_id,
+        message=body.message,
+    )
+    log.info(
+        "response_sent",
+        service="api",
+        latency_ms=result.latency_ms,
+        tokens_in=result.tokens_in,
+        tokens_out=result.tokens_out,
+        cost_usd=result.cost_usd,
+        quality_score=result.quality_score,
+        payload={"answer_preview": summarize_text(result.answer)},
+    )
+    return ChatResponse(
+        answer=result.answer,
+        correlation_id=request.state.correlation_id,
+        latency_ms=result.latency_ms,
+        tokens_in=result.tokens_in,
+        tokens_out=result.tokens_out,
+        cost_usd=result.cost_usd,
+        quality_score=result.quality_score,
+    )
 
 
 @app.post("/incidents/{name}/enable")
