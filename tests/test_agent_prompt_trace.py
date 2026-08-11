@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from structlog.contextvars import bind_contextvars, clear_contextvars
+
 from app import agent as agent_module
 
 
@@ -38,14 +40,19 @@ def test_agent_links_prompt_version_to_trace_and_generation(monkeypatch) -> None
     client = RecordingLangfuseClient()
     monkeypatch.setattr(agent_module, "get_langfuse_client", lambda: client)
 
-    agent = agent_module.LabAgent()
-    agent_module.LabAgent.run.__wrapped__(
-        agent,
-        user_id="student-01",
-        feature="qa",
-        session_id="session-01",
-        message="Explain traces",
-    )
+    clear_contextvars()
+    bind_contextvars(correlation_id="req-trace-123")
+    try:
+        agent = agent_module.LabAgent()
+        agent_module.LabAgent.run.__wrapped__(
+            agent,
+            user_id="student-01",
+            feature="qa",
+            session_id="session-01",
+            message="Explain traces",
+        )
+    finally:
+        clear_contextvars()
 
     trace_metadata = client.trace_updates[-1]["metadata"]
     generation_update = client.generation_updates[-1]
@@ -54,6 +61,27 @@ def test_agent_links_prompt_version_to_trace_and_generation(monkeypatch) -> None
         "prompt_label": "production",
         "prompt_version": "3",
         "prompt_source": "langfuse",
+        "correlation_id": "req-trace-123",
     }
     assert generation_update["prompt"] is client.prompt
     assert generation_update["metadata"]["prompt_version"] == "3"
+
+
+def test_agent_trace_uses_missing_without_request_context(monkeypatch) -> None:
+    clear_contextvars()
+    client = RecordingLangfuseClient()
+    monkeypatch.setattr(agent_module, "get_langfuse_client", lambda: client)
+
+    try:
+        agent = agent_module.LabAgent()
+        agent_module.LabAgent.run.__wrapped__(
+            agent,
+            user_id="student-02",
+            feature="qa",
+            session_id="session-02",
+            message="Explain logs",
+        )
+
+        assert client.trace_updates[-1]["metadata"]["correlation_id"] == "MISSING"
+    finally:
+        clear_contextvars()
