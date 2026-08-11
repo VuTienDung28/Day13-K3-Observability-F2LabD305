@@ -2,23 +2,28 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: F2-LabD305
 - Repository URL: https://github.com/VuTienDung28/Day13-K3-Observability-F2LabD305
 - Commit SHA cuối:
 - Thành viên và vai trò:
-  - Nguyễn Đức Chung — 2A202601705 — Role C: Metrics & Dashboard.
+  - Vũ Tiến Dũng - Security Engineer
+  - Chu Nguyễn Tuấn Anh - API & Middleware
+  - Nguyễn Văn Chung - Metrics và DashBoard
+  - Đào Thị Trang - SRE & Alerts Engineer
+  - Lê Minh Ngọc - QA & Chief Investigator
 
 ## 2. Kết quả kỹ thuật
 
-- Điểm `validate_logs.py`: `100/100`.
-- Tổng số traces:
-- Số PII leak còn lại: `0`.
-- Link/đường dẫn dashboard: `docs/dashboard-spec.md` và `config/dashboard.yaml` (phương án dashboard bằng spec theo CP2).
+- Điểm `validate_logs.py`: **100/100** — 12 log records, 0 record thiếu trường bắt buộc, 0 record thiếu enrichment và 4 correlation ID duy nhất.
+- Tổng số traces: 
+- Số PII leak còn lại: **0**.
+- Link/đường dẫn dashboard:Link/đường dẫn dashboard: `docs/dashboard-spec.md` và `config/dashboard.yaml` (phương án dashboard bằng spec theo CP2).
 
 ## 3. Logging và tracing
 
-- Evidence correlation ID:
-- Evidence PII redaction:
+- Evidence correlation ID: [CP1 correlation ID](evidence/cp1-correlation-id.png).
+- Evidence PII redaction: [CP1 PII redaction](evidence/cp1-pii-redaction.png) và [kết quả validate logs](evidence/cp1-validate-logs.png). Email, điện thoại Việt Nam, CCCD, thẻ thanh toán, passport và từ khóa địa chỉ Việt Nam được thay bằng marker `[REDACTED_*]` trước khi ghi JSONL. Kết quả cuối: `Potential PII leaks detected: 0`, `[PASSED] PII scrubbing`, score 100/100.
+- Evidence automated tests: [CP1 automated tests](evidence/cp1-automated-tests.png). Test bao phủ regex, container lồng nhau, processor order, JSONL output, validator độc lập và Langfuse correlation metadata.
 - Evidence trace waterfall:
 - Giải thích một span đáng chú ý:
 
@@ -74,6 +79,8 @@
 
 Với mỗi thành viên, ghi rõ nhiệm vụ và link commit/PR tương ứng.
 
+| Thành viên   | Phần việc                                                                             | Commit/PR                                                            | Điều đã học                                                                                                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vũ Tiến Dũng | Security Engineer — CP1 PII Scrubbing, regex patterns và kiểm chứng log không lộ PII. | PR #1; commits `cf98b72`, `c680ce3`, `88730f3`, `8db554c`, `291cf64` | PII phải được scrub sau bước enrich timestamp nhưng trước mọi renderer/file writer; validator phải độc lập với production scrubber; correlation ID giúp đối chiếu cùng request giữa response, logs và traces. |
 | Thành viên | Phần việc | Commit/PR | Điều đã học |
-|---|---|---|---|
 | Nguyễn Đức Chung (2A202601705) | Role C — bổ sung request counters và `error_rate_pct`; tăng cường semantic validation cho dashboard contract 6 panel; viết test metrics/dashboard; đồng bộ `origin/main` vào nhánh cá nhân | `5ceb708` — request error-rate metrics; `3f08503` — dashboard semantic validation; nhánh `2A202601705_NguyenDucChung` | Cách tính error rate không chia cho 0; ý nghĩa P50/P95/P99; cách ánh xạ log event/field sang dashboard; vai trò của threshold/SLO trong phát hiện bất thường |
