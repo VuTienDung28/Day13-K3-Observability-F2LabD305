@@ -4,6 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 
@@ -63,3 +64,51 @@ def test_validator_rejects_panel_without_query_example(tmp_path: Path) -> None:
 
     assert result.returncode == 1
     assert "latency.query" in result.stdout
+
+
+def test_validator_rejects_panel_with_wrong_source(tmp_path: Path) -> None:
+    payload = yaml.safe_load(
+        (REPO_ROOT / "config" / "dashboard.yaml").read_text(encoding="utf-8")
+    )
+    payload["dashboard"]["panels"][0]["source"] = "other.jsonl"
+    invalid_config = tmp_path / "dashboard.yaml"
+    invalid_config.write_text(
+        yaml.safe_dump(payload, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
+
+    result = run_validator(invalid_config)
+
+    assert result.returncode == 1
+    assert "latency.source" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value"),
+    [
+        ("events", ["request_failed"]),
+        ("fields", ["event"]),
+        ("aggregations", ["count"]),
+        ("unit", "requests"),
+    ],
+)
+def test_validator_rejects_error_panel_semantic_drift(
+    tmp_path: Path, field: str, bad_value: object
+) -> None:
+    payload = yaml.safe_load(
+        (REPO_ROOT / "config" / "dashboard.yaml").read_text(encoding="utf-8")
+    )
+    error_panel = next(
+        panel
+        for panel in payload["dashboard"]["panels"]
+        if panel["id"] == "errors"
+    )
+    error_panel[field] = bad_value
+    invalid_config = tmp_path / f"dashboard-{field}.yaml"
+    invalid_config.write_text(
+        yaml.safe_dump(payload, sort_keys=False, allow_unicode=True), encoding="utf-8"
+    )
+
+    result = run_validator(invalid_config)
+
+    assert result.returncode == 1
+    assert f"errors.{field}" in result.stdout
