@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-08-11T09:50:40.214506Z",
+  "source": "data\\logs.jsonl",
+  "records_analyzed": 353,
+  "thresholds": {
+    "latency_ms": 3000.0,
+    "daily_cost_usd": 2.5
+  },
+  "anomaly_count": 5,
+  "counts_by_type": {
+    "latency_slo_breach": 4,
+    "request_failure": 1
+  },
+  "anomalies": [
+    {
+      "type": "latency_slo_breach",
+      "severity": "warning",
+      "line": 224,
+      "correlation_id": "rolee-new-candidate-v2",
+      "observed_ms": 3545,
+      "threshold_ms": 3000.0
+    },
+    {
+      "type": "latency_slo_breach",
+      "severity": "warning",
+      "line": 227,
+      "correlation_id": "rolee-new-production-v2",
+      "observed_ms": 18220,
+      "threshold_ms": 3000.0
+    },
+    {
+      "type": "latency_slo_breach",
+      "severity": "warning",
+      "line": 229,
+      "correlation_id": "rolee-new-production-v2b",
+      "observed_ms": 4290,
+      "threshold_ms": 3000.0
+    },
+    {
+      "type": "request_failure",
+      "severity": "warning",
+      "line": 230,
+      "correlation_id": "rolee-new-production-v2b",
+      "error_type": "OSError"
+    },
+    {
+      "type": "latency_slo_breach",
+      "severity": "warning",
+      "line": 233,
+      "correlation_id": "rolee-new-production-v2-final",
+      "observed_ms": 5376,
+      "threshold_ms": 3000.0
+    }
+  ]
+}

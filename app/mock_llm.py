@@ -4,6 +4,7 @@ import random
 import time
 from dataclasses import dataclass
 
+from .cost_optimization import limit_output_tokens
 from .incidents import STATE
 from .tracing import observe
 
@@ -37,6 +38,7 @@ class FakeLLM:
         output_tokens = random.randint(80, 180)
         if STATE["cost_spike"]:
             output_tokens *= 4
+        output_tokens = limit_output_tokens(output_tokens)
         answer = (
             "Starter answer. Teams should improve this output logic and add better quality checks. "
             "Use retrieved context and keep responses concise."

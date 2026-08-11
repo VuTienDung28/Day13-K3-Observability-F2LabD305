@@ -8,12 +8,13 @@ from fastapi.responses import JSONResponse
 from structlog.contextvars import bind_contextvars
 
 from .agent import LabAgent
+from .cost_optimization import get_config, update_config
 from .incidents import disable, enable, status
 from .logging_config import configure_logging, get_logger
 from .metrics import record_error, snapshot
 from .middleware import CorrelationIdMiddleware
 from .pii import hash_user_id, summarize_text
-from .schemas import ChatRequest, ChatResponse
+from .schemas import ChatRequest, ChatResponse, CostOptimizationRequest
 from .tracing import tracing_enabled
 
 configure_logging()
@@ -125,7 +126,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
 @app.post("/incidents/{name}/enable")
 async def enable_incident(name: str) -> JSONResponse:
     try:
-        enable(name)
+        enable(name, actor="control_api")
         log.warning("incident_enabled", service="control", payload={"name": name})
         return JSONResponse({"ok": True, "incidents": status()})
     except KeyError as exc:
@@ -135,8 +136,39 @@ async def enable_incident(name: str) -> JSONResponse:
 @app.post("/incidents/{name}/disable")
 async def disable_incident(name: str) -> JSONResponse:
     try:
-        disable(name)
+        disable(name, actor="control_api")
         log.warning("incident_disabled", service="control", payload={"name": name})
         return JSONResponse({"ok": True, "incidents": status()})
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/config/cost-optimization")
+async def read_cost_optimization() -> dict:
+    config = get_config()
+    return {
+        "enabled": config.enabled,
+        "max_output_tokens": config.max_output_tokens,
+    }
+
+
+@app.put("/config/cost-optimization")
+async def configure_cost_optimization(body: CostOptimizationRequest) -> dict:
+    config = update_config(
+        enabled=body.enabled,
+        max_output_tokens=body.max_output_tokens,
+        actor="control_api",
+    )
+    log.warning(
+        "cost_optimization_configured",
+        service="control",
+        payload={
+            "enabled": config.enabled,
+            "max_output_tokens": config.max_output_tokens,
+        },
+    )
+    return {
+        "ok": True,
+        "enabled": config.enabled,
+        "max_output_tokens": config.max_output_tokens,
+    }

@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-08-11T09:46:52.665476Z",
+  "scenario": "cost_spike",
+  "optimization": {
+    "strategy": "output_token_limit",
+    "max_output_tokens": 160
+  },
+  "before": {
+    "requests": 10,
+    "total_cost_usd": 0.07965,
+    "average_cost_usd": 0.007965,
+    "tokens_out_total": 5244,
+    "tokens_out_max": 652,
+    "correlation_ids": [
+      "bonus-before-01",
+      "bonus-before-02",
+      "bonus-before-03",
+      "bonus-before-04",
+      "bonus-before-05",
+      "bonus-before-06",
+      "bonus-before-07",
+      "bonus-before-08",
+      "bonus-before-09",
+      "bonus-before-10"
+    ]
+  },
+  "after": {
+    "requests": 10,
+    "total_cost_usd": 0.02499,
+    "average_cost_usd": 0.002499,
+    "tokens_out_total": 1600,
+    "tokens_out_max": 160,
+    "correlation_ids": [
+      "bonus-after-01",
+      "bonus-after-02",
+      "bonus-after-03",
+      "bonus-after-04",
+      "bonus-after-05",
+      "bonus-after-06",
+      "bonus-after-07",
+      "bonus-after-08",
+      "bonus-after-09",
+      "bonus-after-10"
+    ]
+  },
+  "savings": {
+    "total_cost_usd": 0.05466,
+    "percent": 68.63
+  }
+}

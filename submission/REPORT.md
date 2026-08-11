@@ -88,7 +88,14 @@
 - Fix action: tắt incident sau khi điều tra; với production cần timeout vector store, cache kết quả và tối ưu truy vấn retrieval.
 - Preventive measure: thêm span riêng `rag-retrieve`/`llm-generate`, theo dõi retrieval latency và giữ alert API latency P95.
 
-## 7. Đóng góp cá nhân
+## 7. Bonus — Cost Optimization, Audit Log và Automation
+
+- Kịch bản `cost_spike` được chạy trên cùng 10 query trước và sau khi bật giới hạn 160 output tokens. Tổng cost giảm từ **0.079650 USD** xuống **0.024990 USD**, tiết kiệm **0.054660 USD (68.63%)**; output tokens giảm từ 5,244 xuống 1,600. Evidence: [JSON before/after](evidence/bonus-cost-before-after.json) và [ảnh so sánh](evidence/bonus-cost-before-after.png).
+- `data/audit.jsonl` là log riêng cho control-plane, chỉ ghi `incident_changed` và `config_changed`. Mỗi dòng có timestamp, actor, action, resource, correlation ID, trạng thái trước/sau và được scrub PII. Evidence mẫu: [audit log](evidence/bonus-audit-log.md).
+- `scripts/detect_anomalies.py` tự động đọc `data/logs.jsonl` và ngưỡng trong `config/slo.yaml` để phát hiện PII leak, latency vượt SLO, request failure và daily cost vượt budget. Lần chạy evidence đã phân tích 353 records, phát hiện 4 latency breach và 1 request failure lịch sử, không phát hiện PII leak. Evidence: [anomaly report](evidence/bonus-anomaly-report.json).
+- Hướng dẫn tái hiện: [Bonus guide](../docs/BONUS_GUIDE.md). Automated tests cho bonus nằm trong `tests/test_bonus_features.py`.
+
+## 8. Đóng góp cá nhân
 
 Với mỗi thành viên, ghi rõ nhiệm vụ và link commit/PR tương ứng.
 
